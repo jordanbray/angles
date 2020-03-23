@@ -11,17 +11,17 @@ cat test.maxima | maxima | \
 	sed 's/sqrt(2-p.clone())/np.clone()/g' | \
 	sed 's/sqrt(n.clone()+2)/pn.clone()/g' | \
 	sed 's/sqrt(2+n.clone())/pn.clone()/g' | \
-	sed 's/2^(3\/2)/pt.clone()/g' | \
-	sed 's/2^(7\/2)/ps.clone()/g' | \
-	sed 's/2^(9\/2)/pq.clone()/g' | \
-	sed 's/2^(17\/2)/pr.clone()/g' | \
-	sed 's/2^(19\/2)/pu.clone()/g' | \
-	sed 's/2^(25\/2)/pv.clone()/g' | \
-	sed 's/2^(41\/2)/pw.clone()/g' | \
-	sed 's/2^(37\/2)/px.clone()/g' | \
-	sed 's/2^(27\/2)/py.clone()/g' | \
-	sed 's/2^(21\/2)/pz.clone()/g' | \
+	sed 's/c_a/c_a.clone()/' | \
+	sed 's/c_b/c_b.clone()/' | \
+	sed 's/c_c/c_c.clone()/' | \
+	sed 's/c_d/c_d.clone()/' | \
+	sed 's/c_e/c_e.clone()/' | \
+	sed 's/c_f/c_f.clone()/' | \
+	sed 's/c_g/c_g.clone()/' | \
+	sed 's/c_h/c_h.clone()/' | \
+	sed -re 's/2\^[(]([0-9]+)\/2[)]/twos(\1)/g' | \
 	sed -r 's/[0-9]+/nu("\0")/g' | \
+	sed -r 's/twos[(]nu[(]"([0-9]+)"[)][)]/twos(\1)/g' | \
 	sed 's/^/    let /' | \
 	sed 's/$/;/'
 

@@ -22,11 +22,11 @@ t[18](x) := t[17](x) * x * 2 - t[16](x)$
 t[19](x) := t[18](x) * x * 2 - t[17](x)$
 t[20](x) := t[19](x) * x * 2 - t[18](x)$
 
-vec: [a, b, c, d, e, f, g, h, i]$
+vec: [a, b, c, d, e, f, g, h, i, j]$
 
 poly(x) := sum(vec[y] * t[(y - 1) * 2](x), y, 1, length(vec))$
 
-range_reduce(x) := x / 2^62$
+range_reduce(x) := x / 2^63$
 
 solveme(x) := poly(range_reduce(x))$
 
@@ -34,13 +34,14 @@ factor: 2^63$
 
 results: linsolve([
     solveme(factor * 0 / 16) = 1.0,
-    solveme(factor * 1 / 16) = sqrt(2 + sqrt(2 + sqrt(2))) / 2,
-    solveme(factor * 2 / 16) = sqrt(2 + sqrt(2)) / 2,
-    solveme(factor * 3 / 16) = sqrt(2 + sqrt(2 - sqrt(2))) / 2,
-    solveme(factor * 4 / 16) = sqrt(2) / 2,
-    solveme(factor * 5 / 16) = sqrt(2 - sqrt(2 - sqrt(2))) / 2,
-    solveme(factor * 6 / 16) = sqrt(2 - sqrt(2)) / 2,
-    solveme(factor * 7 / 16) = sqrt(2 - sqrt(2 + sqrt(2))) / 2,
+    solveme(factor * 1 / 16) = c_a,
+    solveme(factor * 2 / 16) = c_b,
+    solveme(factor * 3 / 16) = c_c,
+    solveme(factor * 4 / 16) = c_d,
+    solveme(factor * 5 / 16) = c_e,
+    solveme(factor * 6 / 16) = c_f,
+    solveme(factor * 7 / 16) = c_g,
+    solveme(factor * 15 / 32) = c_h,
     solveme(factor * 8 / 16) = 0
 ], vec)$
 
@@ -53,4 +54,4 @@ string(results[6]);
 string(results[7]);
 string(results[8]);
 string(results[9]);
-
+string(results[10]);
