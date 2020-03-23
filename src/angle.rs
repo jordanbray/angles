@@ -89,8 +89,6 @@ impl Angle {
         }
     }
 
-
-
     pub fn sin(&self) -> f64 {
         match (self.units, self.clockwise) {
             (None, _) => 0.0,                         // 360 degrees
