@@ -8,36 +8,31 @@ fn nu(x: &str) -> BigRational {
     BigRational::new(BigInt::from_str(x).unwrap(), BigInt::from_str("1").unwrap())
 }
 
-fn r(num: i64, denom: u64) -> BigRational {
-    BigRational::new(BigInt::from_i64(num).unwrap(), BigInt::from_u64(denom).unwrap())
+fn r(num: i128, denom: i128) -> BigRational {
+    BigRational::new(BigInt::from_i128(num).unwrap(), BigInt::from_i128(denom).unwrap())
 }
 
 fn cos(x: u64) -> f64 {
-    let pi = 1u64 << 63;
+    let pi = 1i128 << 63;
 
-    let a = r(-2806138795432098260, pi);
-    let b = r(-8954675523107343153, pi);
-    let c = r(2793290427581747329, pi);
-    let d = r(-268325731830568274, pi);
-    let e = r(12841183429369621, pi);
-    let f = r(-370687195373424, pi);
-    let g = r(7178198933983, pi);
-    let h = r(-99894457798, pi);
-    let i = r(1039568646, pi);
-    let j = r(-9511839, pi);
+    let a = r(18446744073709551616, pi * 2);
+    let b = -r(91031033247826417296, pi * 2);
+    let c = r(74870023864871611106, pi * 2);
+    let d = -r(24631250568213351723, pi * 2);
+    let e = r(4341083910932751150, pi * 2);
+    let f = -r(476053120750210893, pi * 2);
+    let g = r(35594362661958278, pi * 2);
+    let h = -r(1930226147057960, pi * 2);
+    let i = r(79349793396039, pi * 2);
+    let j = -r(2493471696659, pi * 2);
 
-    let coeffs = vec![a, b, c, d, e, f, g, h, i, j];
+    let coeffs = vec![i, h, g, f, e, d, c, b, a];
 
     let x = Ratio::new(
         BigInt::from_u64(x).unwrap(),
-        BigInt::from_u64(pi).unwrap(),
+        BigInt::from_i128(pi).unwrap(),
     );
 
-    let two = Ratio::new(BigInt::from_i8(2).unwrap(), BigInt::from_i8(1).unwrap());
-
-    let mut p2 = x.clone();
-    let mut p1 = two.clone() * p2.clone() * x.clone()
-        - Ratio::new(BigInt::from_i8(1).unwrap(), BigInt::from_i8(1).unwrap());
     let mut sum = Ratio::new(BigInt::from_i8(0).unwrap(), BigInt::from_i8(1).unwrap());
 
     // currently, sum = sum + coeffs[i] * p1,
@@ -50,13 +45,9 @@ fn cos(x: u64) -> f64 {
 
     for i in 0..coeffs.len() {
         if i == 0 {
-            sum += coeffs[i].clone() // is same a sum += ... * 1
+            sum += coeffs[i].clone() + j.clone() * x.clone() * x.clone(); // is same a sum += ... * 1
         } else {
-            sum += coeffs[i].clone() * p1.clone();
-
-            // advance two terms
-            p2 = p1.clone() * two.clone() * x.clone() - p2;
-            p1 = p2.clone() * two.clone() * x.clone() - p1;
+            sum = sum * x.clone() * x.clone() + coeffs[i].clone();
         }
     }
     to_f64(sum).unwrap()
@@ -134,7 +125,7 @@ fn cos_does_not_lose_precision() {
         0.8032075314806449,
         //  0.80320753148064490980
         0.773010453362737,
-        //  0.77301045336273696081
+         //  0.77301045336273696081
         0.7409511253549591,
         //  0.74095112535495909117
         0.7071067811865476,
