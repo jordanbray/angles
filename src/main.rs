@@ -8,147 +8,37 @@ fn nu(x: &str) -> BigRational {
     BigRational::new(BigInt::from_str(x).unwrap(), BigInt::from_str("1").unwrap())
 }
 
+fn r(num: i64, denom: u64) -> BigRational {
+    BigRational::new(BigInt::from_i64(num).unwrap(), BigInt::from_u64(denom).unwrap())
+}
+
 fn cos(x: u64) -> f64 {
-    let a = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                2446195453, 46869709,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                196814662, 154053951,
-            ],
-        ),
-    );
-    let b = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                2518029526, 1695081680,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2230566170, 1745944778,
-            ],
-        ),
-    );
-    let c = Ratio::new(
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2267180140, 1541384902, 3631396274, 528757900,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2467302650, 2984024681, 2230566170, 1745944778,
-            ],
-        ),
-    );
-    let d = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                338289315, 4044736329, 3260197920, 76189365,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                1553470327, 181069726, 3345849256, 2618917167,
-            ],
-        ),
-    );
-    let e = Ratio::new(
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2035520119, 3244597425, 1985439168, 45014,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                1238737260, 1805061207, 3063691174, 32332310,
-            ],
-        ),
-    );
-    let f = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                1508299317, 2460266055, 3934654122, 11694,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2558700756, 3360648977, 1803416793, 290990796,
-            ],
-        ),
-    );
-    let g = Ratio::new(
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2527633760, 2312594440, 873678750, 2038,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                1553470327, 181069726, 3345849256, 2618917167,
-            ],
-        ),
-    );
-    let h = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                2719111850, 1750265349, 1400277267,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                709000143, 791960304, 778969640, 30102496,
-            ],
-        ),
-    );
-    let i = Ratio::new(
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2729887359, 3478000702, 422594474,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                3381134973, 1492012340, 1115283085, 872972389,
-            ],
-        ),
-    );
-    let j = Ratio::new(
-        BigInt::new(
-            Sign::Minus,
-            vec![
-                511537141, 2029224376, 682350,
-            ],
-        ),
-        BigInt::new(
-            Sign::Plus,
-            vec![
-                2112541687, 515941430, 196814662, 154053951,
-            ],
-        ),
-    );
+    //let a_j_denom = 661656681561401158;
+    //let d_g_denom = 11248163586543819688;
+    //let f_i_denom = 3749387862181273229;
+    let pi = 1u64 << 63;
+
+    // let a = r(-201303869774232317,  a_j_denom);
+    let a = r(-2806138795432098259, pi);
+    //let b = r(-7280320382166766806, b_c_denom);
+    let b = r(-8954675523107343155, pi);
+    //let c = r(2270997891633034674,  b_c_denom);
+    let c = r(2793290427581747328, pi);
+    let d = r(-268325731830568274, pi);
+    //let d = r(-327230834238204960,  d_g_denom);
+    //let e = r(193335643301312,      138866217117824934);
+    let e = r(12841183429369569, pi);
+
+    //let f = r(-50229282213546 * 3, f_i_denom);
+    let f = r(-370687195373421, pi);
+    //let g = r(8754017027998,               d_g_denom);
+    let g = r(7178198933982, pi);
+    // let h = r(-1400277267,          129289236626940456);
+    let h = r(-99894457770, pi);
+    //let i = r(422594474,            f_i_denom);
+    let i = r(1039568643, pi);
+    //let j = r(-682350,              a_j_denom);
+    let j = r(-9511834, pi);
 
     let coeffs = vec![a, b, c, d, e, f, g, h, i, j];
 
