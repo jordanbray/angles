@@ -1,7 +1,7 @@
 mod helpers;
 
 use crate::helpers::to_f64;
-use num::{bigint::Sign, rational::Ratio, BigInt, BigRational, FromPrimitive};
+use num::{rational::Ratio, BigInt, BigRational, FromPrimitive};
 use std::str::FromStr;
 
 fn nu(x: &str) -> BigRational {
@@ -13,31 +13,17 @@ fn r(num: i64, denom: u64) -> BigRational {
 }
 
 fn cos(x: u64) -> f64 {
-    //let a_j_denom = 661656681561401158;
-    //let d_g_denom = 11248163586543819688;
-    //let f_i_denom = 3749387862181273229;
     let pi = 1u64 << 63;
 
-    // let a = r(-201303869774232317,  a_j_denom);
     let a = r(-2806138795432098259, pi);
-    //let b = r(-7280320382166766806, b_c_denom);
     let b = r(-8954675523107343155, pi);
-    //let c = r(2270997891633034674,  b_c_denom);
     let c = r(2793290427581747328, pi);
     let d = r(-268325731830568274, pi);
-    //let d = r(-327230834238204960,  d_g_denom);
-    //let e = r(193335643301312,      138866217117824934);
     let e = r(12841183429369569, pi);
-
-    //let f = r(-50229282213546 * 3, f_i_denom);
     let f = r(-370687195373421, pi);
-    //let g = r(8754017027998,               d_g_denom);
     let g = r(7178198933982, pi);
-    // let h = r(-1400277267,          129289236626940456);
     let h = r(-99894457770, pi);
-    //let i = r(422594474,            f_i_denom);
     let i = r(1039568643, pi);
-    //let j = r(-682350,              a_j_denom);
     let j = r(-9511834, pi);
 
     let coeffs = vec![a, b, c, d, e, f, g, h, i, j];
