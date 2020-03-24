@@ -15,22 +15,22 @@ fn r(num: i64, denom: u64) -> BigRational {
 fn cos(x: u64) -> f64 {
     let pi = 1u64 << 63;
 
-    let a = r(-2806138795432098259, pi);
-    let b = r(-8954675523107343155, pi);
-    let c = r(2793290427581747328, pi);
+    let a = r(-2806138795432098260, pi);
+    let b = r(-8954675523107343153, pi);
+    let c = r(2793290427581747329, pi);
     let d = r(-268325731830568274, pi);
-    let e = r(12841183429369569, pi);
-    let f = r(-370687195373421, pi);
-    let g = r(7178198933982, pi);
-    let h = r(-99894457770, pi);
-    let i = r(1039568643, pi);
-    let j = r(-9511834, pi);
+    let e = r(12841183429369621, pi);
+    let f = r(-370687195373424, pi);
+    let g = r(7178198933983, pi);
+    let h = r(-99894457798, pi);
+    let i = r(1039568646, pi);
+    let j = r(-9511839, pi);
 
     let coeffs = vec![a, b, c, d, e, f, g, h, i, j];
 
     let x = Ratio::new(
         BigInt::from_u64(x).unwrap(),
-        BigInt::from_u64(9223372036854775808).unwrap(),
+        BigInt::from_u64(pi).unwrap(),
     );
 
     let two = Ratio::new(BigInt::from_i8(2).unwrap(), BigInt::from_i8(1).unwrap());
@@ -39,6 +39,15 @@ fn cos(x: u64) -> f64 {
     let mut p1 = two.clone() * p2.clone() * x.clone()
         - Ratio::new(BigInt::from_i8(1).unwrap(), BigInt::from_i8(1).unwrap());
     let mut sum = Ratio::new(BigInt::from_i8(0).unwrap(), BigInt::from_i8(1).unwrap());
+
+    // currently, sum = sum + coeffs[i] * p1,
+    // I want, sum = coeffs[len - i - 1]
+    // sum = sum * x^2 + coeffs[len - i - 1]
+    //
+    // tn = 2*t(n-1)*x - t(n-2)
+    // sum = t0 * a + t2 * b + t4 * c + t6 * d + t8 * e ...
+    // sum = 1 * a + (2 * x * 
+
     for i in 0..coeffs.len() {
         if i == 0 {
             sum += coeffs[i].clone() // is same a sum += ... * 1
