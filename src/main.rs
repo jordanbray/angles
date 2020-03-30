@@ -14,47 +14,39 @@ fn r(num: i128, denom: i128) -> BigRational {
 
 fn cos(x: u64) -> f64 {
     let pi = 1i128 << 63;
-    
+
     let s1 = 8;
     let s2 = s1 - 4;
 
     // 58 bits per thing
-    let a = r(36028797018963968, pi  >> s1);
-    let b = -r(2844719788994575541 >> s2, pi >> s1);
-    let c = r(2339688245777237847 >> s2, pi >> s1);
-    let d = -r(769726580256667242 >> s2, pi >> s1);
-    let e = r(135658872216648473 >> s2, pi >> s1);
-    let f = -r(14876660023444091 >> s2, pi >> s1);
-    let g = r(1112323833186196 >> s2, pi >> s1);
-    let h = -r(60319567095562 >> s2, pi >> s1);
-    let i = r(2479681043626 >> s2, pi >> s1);
-    let j = -r(77920990521 >> s2, pi >> s1);
+    let a = 1152921504606846976;
+    let b = -5689439577989151082;
+    let c = 4679376491554475694;
+    let d = -1539453160513334483;
+    let e = 271317744433296946;
+    let f = -29753320046888181;
+    let g = 2224647666372392;
+    let h = -120639134191123;
+    let i = 4959362087252;
+    let j = -155841981042;
 
     let coeffs = vec![i, h, g, f, e, d, c, b, a];
 
-    let x = Ratio::new(
-        BigInt::from_u64(x).unwrap(),
-        BigInt::from_i128(pi).unwrap(),
-    );
-
-    let mut sum = Ratio::new(BigInt::from_i8(0).unwrap(), BigInt::from_i8(1).unwrap());
-
-    // currently, sum = sum + coeffs[i] * p1,
-    // I want, sum = coeffs[len - i - 1]
-    // sum = sum * x^2 + coeffs[len - i - 1]
-    //
-    // tn = 2*t(n-1)*x - t(n-2)
-    // sum = t0 * a + t2 * b + t4 * c + t6 * d + t8 * e ...
-    // sum = 1 * a + (2 * x * 
+    let mut sum: i128 = j;
+    let x = x as i128;
 
     for i in 0..coeffs.len() {
-        if i == 0 {
-            sum += coeffs[i].clone() + j.clone() * x.clone() * x.clone(); // is same a sum += ... * 1
-        } else {
-            sum = sum * x.clone() * x.clone() + coeffs[i].clone();
-        }
+        let t1 = sum * x;
+        let t2 = t1 / pi;
+        let t3 = t2 * x;
+        let t4 = t3 / pi;
+        sum = t4 + coeffs[i];
     }
-    to_f64(sum).unwrap()
+
+    // result is 'sum / (1<<60)'
+
+
+    (sum as f64) / ((1i128<<60) as f64)
 }
 
 fn main() {

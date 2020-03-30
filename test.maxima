@@ -32,16 +32,18 @@ solveme(x) := poly(range_reduce(x))$
 
 factor: 2^63$
 
+result_factor: 2^60;
+
 results: linsolve([
-    solveme(factor * 0 / 16) = 1.0,
-    solveme(factor * 1 / 16) = sqrt(2 + sqrt(2 + sqrt(2))) / 2.0,
-    solveme(factor * 2 / 16) = sqrt(2 + sqrt(2)) / 2.0,
-    solveme(factor * 3 / 16) = sqrt(2 + sqrt(2 - sqrt(2))) / 2.0,
-    solveme(factor * 4 / 16) = sqrt(2) / 2.0,
-    solveme(factor * 5 / 16) = sqrt(2 - sqrt(2 - sqrt(2))) / 2,
-    solveme(factor * 6 / 16) = sqrt(2 - sqrt(2)) / 2,
-    solveme(factor * 7 / 16) = sqrt(2 - sqrt(2 + sqrt(2))) / 2,
-    solveme(factor * 15 / 32) = sqrt(2 - sqrt(2 + sqrt(2 + sqrt(2)))) / 2,
+    solveme(factor * 0 / 16) = 1.0 * result_factor,
+    solveme(factor * 1 / 16) = sqrt(2 + sqrt(2 + sqrt(2))) / 2.0 * result_factor,
+    solveme(factor * 2 / 16) = sqrt(2 + sqrt(2)) / 2.0 * result_factor,
+    solveme(factor * 3 / 16) = sqrt(2 + sqrt(2 - sqrt(2))) / 2.0 * result_factor,
+    solveme(factor * 4 / 16) = sqrt(2) / 2.0 * result_factor,
+    solveme(factor * 5 / 16) = sqrt(2 - sqrt(2 - sqrt(2))) / 2 * result_factor,
+    solveme(factor * 6 / 16) = sqrt(2 - sqrt(2)) / 2 * result_factor,
+    solveme(factor * 7 / 16) = sqrt(2 - sqrt(2 + sqrt(2))) / 2 * result_factor,
+    solveme(factor * 15 / 32) = sqrt(2 - sqrt(2 + sqrt(2 + sqrt(2)))) / 2 * result_factor,
     solveme(factor * 8 / 16) = 0
 ], vec)$
 
@@ -52,16 +54,16 @@ float(result);
 
 a: part(result, 1)$
 
-factor: factor * 2$
+factor: 1$
 
 result: part(result, 2)$
 b: floor(part(result, 2) * a * factor);
-b: part(result, 2) * a;
+b: part(result, 2);
 
 result: part(result, 1)$
 result: part(result, 3)$
 c: floor(part(result, 2) * a * factor);
-c: part(result, 2) * a;
+c: part(result, 2);
 
 result: part(result, 1)$
 result: part(result, 3)$
@@ -104,14 +106,3 @@ result: part(result, 1)$
 k: floor(-part(result, 1) * a * factor);
 k: part(result, 1);
 
-/* floor(bfloat(rhs(results[1])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[2])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[3])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[4])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[5])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[6])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[7])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[8])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[9])) * factor), fpprec: 128;
-floor(bfloat(rhs(results[10])) * factor), fpprec: 128;
-*/

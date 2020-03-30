@@ -4,13 +4,6 @@ use nalgebra::RealField;
 use num_traits::identities::Zero;
 use std::convert::*;
 
-#[test]
-fn test_factorial_thing() {
-    println!("{:?}", to_f64(Angle::pi_bigint()).unwrap());
-    println!("3.141592653589793238462643383279502884197169399375105820974");
-    println!("{:?}", Angle::pi_bigint());
-}
-
 #[quickcheck]
 fn test_sin(angle: f64) {
     let sin = Angle::from(angle).sin();
@@ -18,7 +11,7 @@ fn test_sin(angle: f64) {
         println!("angle : {:?}", angle);
         println!("mine  : {:?}", sin);
         println!("theirs: {:?}", angle.sin());
-        assert!((angle.sin() - sin).abs() < 0.000000000001);
+        assert!((angle.sin() - sin).abs() < 0.00000000000001);
     }
 }
 
@@ -27,12 +20,13 @@ fn test_cos(angle: f64) {
     let cos = Angle::from(angle).cos();
     if angle.cos() != cos {
         println!("angle : {:?}", angle);
+        println!("I received angle: {:?}", f64::from(Angle::from(angle)));
         println!("mine  : {:?}", cos);
         println!("theirs: {:?}", angle.cos());
-        assert!((angle.cos() - cos).abs() < 0.000000000001);
+        assert!((angle.cos() - cos).abs() < 0.00000000000001);
     }
 }
-
+/*
 #[quickcheck]
 fn test_tan(angle: f64) {
     let tan = Angle::from(angle).tan();
@@ -88,4 +82,4 @@ fn test_add(angle1: f64, angle2: f64) {
         println!("mine   : {:?}", result_f64);
         assert!(pass);
     }
-}
+}*/

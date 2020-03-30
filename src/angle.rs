@@ -44,113 +44,80 @@ impl Angle {
         bi(245850922) / bi(78256779)
     }
 
-    fn sin_partial(x: i64, clockwise: bool) -> BigRational {
-        let n = 12;
-        let pi = Angle::pi_bigint();
-        let zero = bi(0);
-        if x == 0 {
-            zero
-        } else {
-            // Convert x into radians, but keep it as a rational, based on the computed ratio of pi
-            let mut x = bi(x) * -pi / bi(i64::min_value());
-            if clockwise {
-                x *= bi(-1);
-            }
+    /// Returns the cosine of (x * 1<<63) / pi with a very high precision
+    ///
+    /// This only works over the range [-pi/2 to pi/2]
+    fn cos_partial(x: i64) -> f64 {
+        assert!(x > -(1<<62) && x < (1<<62));
 
-            let mut sum = x.clone();
-            let mut t = x.clone();
-            let x_2 = x.clone() * x.clone();
+        let pi = 1i128 << 63;
 
-            for i in 1..n {
-                t = (t * bi(-1) * x_2.clone()) / (bi(2) * bi(i) * (bi(2) * bi(i) + bi(1)));
-                sum = sum + t.clone();
-            }
-            sum
+        let s1 = 8;
+        let s2 = s1 - 4;
+
+        // 58 bits per thing
+        let a = 1152921504606846976;
+        let b = -5689439577989151082;
+        let c = 4679376491554475694;
+        let d = -1539453160513334483;
+        let e = 271317744433296946;
+        let f = -29753320046888181;
+        let g = 2224647666372392;
+        let h = -120639134191123;
+        let i = 4959362087252;
+        let j = -155841981042;
+
+        let coeffs = vec![i, h, g, f, e, d, c, b, a];
+
+        let mut sum: i128 = j;
+        let x = x as i128;
+
+        for i in 0..coeffs.len() {
+            let t1 = sum * x;
+            let t2 = t1 / pi;
+            let t3 = t2 * x;
+            let t4 = t3 / pi;
+            sum = t4 + coeffs[i];
         }
+
+        // Keep in mind 1<<60 is representable exactly with a float
+        (sum as f64) / ((1i128<<60) as f64)
     }
 
-    fn cos_partial(x: i64) -> BigRational {
-        let n = 13;
-        let pi = Angle::pi_bigint();
-        let one = bi(1);
-        if x == 0 {
-            one
-        } else {
-            let x = bi(x) * -pi / bi(i64::min_value());
+    pub fn cos(&self) -> f64 {
+        match (self.clockwise, self.units) {
+            (_, None) => 1.0,
+            (_, Some(0)) => 1.0,
+            (false, Some(x)) => {
+                let x = x as i64; // because of the symmetry, this always results in the same angle
 
-            let mut sum = one.clone();
-            let mut t = one.clone();
-            let x_2 = x.clone() * x.clone();
-            for i in 1..n {
-                t = t * bi(-1) * x_2.clone() / bi(2 * i * (2 * i - 1));
-                sum = sum + t.clone();
+                if x < -(1<<62) {
+                    // x is in the range [-pi to pi/2)
+                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                } else if x > (1<<62) {
+                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                } else {
+                    Angle::cos_partial(x)
+                }
+            },
+            (true, Some(x)) => {
+                let x = x as i64; // because of the symmetry, this always results in the same angle
+                let x = -x;
+
+                if x < -(1<<62) {
+                    // x is in the range [-pi to pi/2)
+                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                } else if x > (1<<62) {
+                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                } else {
+                    Angle::cos_partial(x)
+                }
             }
-            sum
         }
     }
 
     pub fn sin(&self) -> f64 {
-        match (self.units, self.clockwise) {
-            (None, _) => 0.0,                         // 360 degrees
-            (Some(x), _) if x == 1 << 63 => 0.0,      // 180 degrees
-            (Some(x), false) if x == 1 << 62 => 1.0,  // 90 degrees counter-clockwise
-            (Some(x), true) if x == 1 << 62 => -1.0,  // 90 degrees clockwise
-            (Some(x), false) if x == 3 << 62 => -1.0, // 270 degrees counter-clockwise
-            (Some(x), true) if x == 3 << 62 => 1.0,   // 270 degrees clockwise
-            (Some(x), clockwise) => {
-                // any other value
-                let pi_2 = 1i64 << 62;
-                let minus_pi = i64::min_value();
-
-                // we want to keep our angle within this range... somehow...
-                // this will be our weapon
-                // sin(x) = -sin(x + 180)
-                //
-                // We can just cast this to an i64 due to the way the units work out
-                let x: i64 = x as i64;
-                to_f64(if x < pi_2 {
-                    -Angle::sin_partial(x - minus_pi, clockwise)
-                } else if x > pi_2 {
-                    -Angle::sin_partial(x + minus_pi, clockwise)
-                } else {
-                    Angle::sin_partial(x, clockwise)
-                })
-                .unwrap()
-            }
-        }
-    }
-
-    pub fn cos(&self) -> f64 {
-        match self.units {
-            None => 1.0,                     // 360 degrees
-            Some(x) if x == 1 << 63 => -1.0, // 180 degrees
-            Some(x) if x == 1 << 62 => 0.0,  // 90 degrees
-            Some(x) if x == 3 << 62 => 0.0,  // 270 degrees
-            Some(x) => {
-                // any other value
-                let pi_2 = 1i64 << 62;
-                let minus_pi = i64::min_value();
-
-                // we want to keep our angle within this range... somehow...
-                // this will be our weapon
-                // sin(x) = -sin(x + 180)
-                //
-                // We can just cast this to an i64 due to the way the units work out
-                let x: i64 = x as i64;
-                to_f64(if x < pi_2 {
-                    -Angle::cos_partial(x - minus_pi)
-                } else if x > pi_2 {
-                    -Angle::cos_partial(x + minus_pi)
-                } else {
-                    Angle::cos_partial(x)
-                })
-                .unwrap()
-            }
-        }
-    }
-
-    pub fn tan(&self) -> f64 {
-        self.sin() / self.cos()
+        (*self - Angle::pi_2()).cos()
     }
 
     pub fn atan(slope: f64) -> Angle {
