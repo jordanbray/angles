@@ -1,0 +1,108 @@
+linel: 64$
+
+t[ 0](x) := 1$
+t[ 1](x) := x$
+t[ 2](x) := t[ 1](x) * x * 2 - t[ 0](x)$
+t[ 3](x) := t[ 2](x) * x * 2 - t[ 1](x)$
+t[ 4](x) := t[ 3](x) * x * 2 - t[ 2](x)$
+t[ 5](x) := t[ 4](x) * x * 2 - t[ 3](x)$
+t[ 6](x) := t[ 5](x) * x * 2 - t[ 4](x)$
+t[ 7](x) := t[ 6](x) * x * 2 - t[ 5](x)$
+t[ 8](x) := t[ 7](x) * x * 2 - t[ 6](x)$
+t[ 9](x) := t[ 8](x) * x * 2 - t[ 7](x)$
+t[10](x) := t[ 9](x) * x * 2 - t[ 8](x)$
+t[11](x) := t[10](x) * x * 2 - t[ 9](x)$
+t[12](x) := t[11](x) * x * 2 - t[10](x)$
+t[13](x) := t[12](x) * x * 2 - t[11](x)$
+t[14](x) := t[13](x) * x * 2 - t[12](x)$
+t[15](x) := t[14](x) * x * 2 - t[13](x)$
+t[16](x) := t[15](x) * x * 2 - t[14](x)$
+t[17](x) := t[16](x) * x * 2 - t[15](x)$
+t[18](x) := t[17](x) * x * 2 - t[16](x)$
+t[19](x) := t[18](x) * x * 2 - t[17](x)$
+t[20](x) := t[19](x) * x * 2 - t[18](x)$
+
+vec: [a, b, c, d, e, f, g, h, i, j]$
+
+poly(x) := sum(vec[y] * t[(y - 1) * 2](x), y, 1, length(vec))$
+
+range_reduce(x) := x / 2^63$
+
+solveme(x) := poly(range_reduce(x))$
+
+factor: 2^63$
+
+result_factor: 2^60;
+
+results: linsolve([
+    solveme(factor * 0 / 16) = 1.0 * result_factor,
+    solveme(factor * 1 / 16) = sqrt(2 + sqrt(2 + sqrt(2))) / 2.0 * result_factor,
+    solveme(factor * 2 / 16) = sqrt(2 + sqrt(2)) / 2.0 * result_factor,
+    solveme(factor * 3 / 16) = sqrt(2 + sqrt(2 - sqrt(2))) / 2.0 * result_factor,
+    solveme(factor * 4 / 16) = sqrt(2) / 2.0 * result_factor,
+    solveme(factor * 5 / 16) = sqrt(2 - sqrt(2 - sqrt(2))) / 2 * result_factor,
+    solveme(factor * 6 / 16) = sqrt(2 - sqrt(2)) / 2 * result_factor,
+    solveme(factor * 7 / 16) = sqrt(2 - sqrt(2 + sqrt(2))) / 2 * result_factor,
+    solveme(factor * 15 / 32) = sqrt(2 - sqrt(2 + sqrt(2 + sqrt(2)))) / 2 * result_factor,
+    solveme(factor * 8 / 16) = 0
+], vec)$
+
+fpprec: 256$
+
+result: bfloat(horner(rhs(sum(results[y] * t[(y - 1) * 2](x), y, 1, length(vec))))), fpprec: 256$
+float(result);
+
+a: part(result, 1)$
+
+factor: 1$
+
+result: part(result, 2)$
+b: floor(part(result, 2) * a * factor);
+b: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+c: floor(part(result, 2) * a * factor);
+c: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+d: floor(part(result, 2) * a * factor);
+d: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+e: floor(part(result, 2) * a * factor);
+e: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+f: floor(part(result, 2) * a * factor);
+f: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+g: floor(part(result, 2) * a * factor);
+g: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+h: floor(part(result, 2) * a * factor);
+h: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+i: floor(part(result, 2) * a * factor);
+i: part(result, 2);
+
+result: part(result, 1)$
+result: part(result, 3)$
+
+j: floor(part(result, 1) * a * factor);
+j: part(result, 1);
+result: part(result, 2)$
+result: part(result, 1)$
+
+k: floor(-part(result, 1) * a * factor);
+k: part(result, 1);
+

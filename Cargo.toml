@@ -8,6 +8,8 @@ edition = "2018"
 
 [dependencies]
 nalgebra = { version = "0.20.0" }
+serde_derive = "1"
+serde = "1"
 
 [dev-dependencies]
 criterion = "0.3"

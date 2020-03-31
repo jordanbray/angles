@@ -11,7 +11,7 @@ fn test_sin(angle: f64) {
 
 #[quickcheck]
 fn test_cos(angle: f64) {
-    let cos = Angle::from(angle).cos();
+    let cos = Angle::from(angle).cos::<f64>();
     assert!((angle.cos() - cos).abs() < 0.00000000000001);
 }
 
@@ -107,10 +107,10 @@ fn test_angle(angle: f64) {
         angle
     };
     let s = Angle::from(angle);
-    let pass = (f64::from(s) - angle).abs() < 0.00000000000001;
+    let pass = (s.into::<f64>() - angle).abs() < 0.00000000000001;
     if !pass {
         println!("start:  {:?}", angle);
-        println!("end   : {:?}", f64::from(s));
+        println!("end   : {:?}", s.into::<f64>());
         println!("middle: {:?}", s);
         assert!(pass);
     }
@@ -132,7 +132,7 @@ fn test_add(angle1: f64, angle2: f64) {
 
     let result = a1 + a2;
 
-    let result_f64 = f64::from(result);
+    let result_f64 = result.into::<f64>();
     let pass = (result_f64 - angle).abs() < 0.0000000000001;
     if !pass {
         println!("angle1 : {:?}", angle1);

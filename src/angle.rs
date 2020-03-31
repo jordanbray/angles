@@ -1,13 +1,18 @@
-use nalgebra::RealField;
+use nalgebra::{RealField, try_convert, convert};
 use std::ops::{Add, Sub, Mul};
+use serde_derive::{Serialize, Deserialize};
 
-#[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default, Serialize, Deserialize)]
 pub struct Angle {
     clockwise: bool,
     units: Option<u64>,
 }
 
 impl Angle {
+    pub fn is_zero(&self) -> bool {
+        self.units == Some(0)
+    }
+
     pub fn pi_2() -> Angle {
         Angle {
             clockwise: false,
@@ -74,7 +79,7 @@ impl Angle {
         (sum as f64) / ((1i128<<60) as f64)
     }
 
-    pub fn cos(&self) -> f64 {
+    pub fn cosf64(&self) -> f64 {
         match (self.clockwise, self.units) {
             (_, None) => 1.0,
             (_, Some(0)) => 1.0,
@@ -106,12 +111,16 @@ impl Angle {
         }
     }
 
+    pub fn cos<T: RealField>(self) -> T {
+        convert(self.cosf64())
+    }
+
     pub fn sin(&self) -> f64 {
         (*self - Angle::pi_2()).cos()
     }
 
     pub fn tan(&self) -> f64 {
-        self.sin() / self.cos()
+        self.sin() / self.cos::<f64>()
     }
 
     pub fn acos(x: f64) -> Angle {
@@ -121,7 +130,7 @@ impl Angle {
         let mut error = max - min;
         while error > 1 {
             let middle = (max + min) / 2;
-            let cos = (Angle { units: Some(middle), clockwise: false }).cos();
+            let cos: f64 = (Angle { units: Some(middle), clockwise: false }).cos();
             if cos == x {
                 return Angle { units: Some(middle), clockwise: false };
             } else if cos < x {
@@ -206,60 +215,15 @@ impl Angle {
             }
         }
     }
-}
 
-impl From<f64> for Angle {
-    fn from(real: f64) -> Angle {
-        // should this be try_from, given NaN and Infinity for floats?
-        let mut real = real;
-        if real < 0.0 {
-            real = real.rem_euclid(f64::two_pi());
-        } else if real > 0.0 {
-            real = -(-real.rem_euclid(f64::two_pi()));
-        }
-
-        if real == 0.0 {
-            Angle {
-                clockwise: false,
-                units: Some(0),
-            }
-        } else if real == f64::two_pi() {
-            Angle {
-                clockwise: false,
-                units: None,
-            }
-        } else if real == -f64::two_pi() {
-            Angle {
-                clockwise: true,
-                units: None,
-            }
-        } else if real > 0.0 {
-            let i = (real * ((Angle::pi().units.unwrap() as f64) / f64::pi())) as u64;
-            Angle {
-                clockwise: false,
-                units: Some(i),
-            }
-        } else if real < 0.0 {
-            let i = ((-real) * ((Angle::pi().units.unwrap() as f64) / f64::pi())) as u64;
-            Angle {
-                clockwise: true,
-                units: Some(i),
-            }
-        } else {
-            panic!("NaN or Infinity passed into From<T: RealField> to Angle");
-        }
-    }
-}
-
-impl From<Angle> for f64 {
-    fn from(angle: Angle) -> f64 {
-        match (angle.units, angle.clockwise) {
-            (None, true) => -f64::two_pi(),
-            (None, false) => f64::two_pi(),
-            (Some(0), _) => 0.0,
+    pub fn into<T: RealField>(self) -> T {
+        match (self.units, self.clockwise) {
+            (None, true) => -T::two_pi(),
+            (None, false) => T::two_pi(),
+            (Some(0), _) => T::zero(),
             (Some(x), clockwise) => {
-                let x = (x as f64) / ((1u64<<63) as f64);
-                let x = x * f64::pi();
+                let x: T = convert::<f64, T>(x as f64) / convert::<f64, T>((1u64<<63) as f64);
+                let x = x * T::pi();
 
                 if !clockwise {
                     x
@@ -267,6 +231,49 @@ impl From<Angle> for f64 {
                     -x
                 }
             }
+        }
+    }
+}
+
+impl<T: RealField> From<T> for Angle {
+    fn from(real: T) -> Angle {
+        // should this be try_from, given NaN and Infinity for floats?
+        let mut real = real;
+        if real < T::zero() {
+            real = -convert::<f64, T>(-f64::rem_euclid(try_convert(real).unwrap(), f64::two_pi()));
+        } else if real > T::zero() {
+            real = convert::<f64, T>(f64::rem_euclid(try_convert(real).unwrap(), f64::two_pi()));
+        }
+
+        if real == T::zero() {
+            Angle {
+                clockwise: false,
+                units: Some(0),
+            }
+        } else if real == T::two_pi() {
+            Angle {
+                clockwise: false,
+                units: None,
+            }
+        } else if real == -T::two_pi() {
+            Angle {
+                clockwise: true,
+                units: None,
+            }
+        } else if real > T::zero() {
+            let i = try_convert((real * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi()).unwrap();
+            Angle {
+                clockwise: false,
+                units: Some(i as u64),
+            }
+        } else if real < T::zero() {
+            let i = try_convert((-real * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi()).unwrap();
+            Angle {
+                clockwise: true,
+                units: Some(i as u64),
+            }
+        } else {
+            panic!("NaN or Infinity passed into From<T: RealField> to Angle");
         }
     }
 }
