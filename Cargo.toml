@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Jordan Bray <jordanbray@gmail.com>"]
 edition = "2018"
 documentation = "https://docs.rs/integer_angles/"
+description = "Do math with angles, but represent them as integers to avoid using floats."
 repository = "https://github.com/jordanbray/angles/"
 license = "MIT"
 
