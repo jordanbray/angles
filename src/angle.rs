@@ -17,7 +17,7 @@ impl Angle {
     /// Is this angle zero?
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert!(Angle::zero().is_zero());
     /// assert!(!Angle::pi().is_zero());
@@ -29,7 +29,7 @@ impl Angle {
     /// Divide pi by some number, and return the result
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::pi_over(2) * 2, Angle::pi());
     /// ```
@@ -40,7 +40,7 @@ impl Angle {
     /// Create a 0-degree angle
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::zero() * 2, Angle::zero());
     /// ```
@@ -54,7 +54,7 @@ impl Angle {
     /// Create an angle of pi over two counter-clockwise (for convenience).
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::pi_2(), Angle::pi_over(2));
     /// assert_eq!(Angle::pi_2() * 2, Angle::pi());
@@ -69,7 +69,7 @@ impl Angle {
     /// Create an angle of pi counter-clockwise.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::pi() / 2, Angle::pi_2());
     /// ```
@@ -83,7 +83,7 @@ impl Angle {
     /// Create an angle that is `two_pi` radians counter-clockwise.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::two_pi() * 2, Angle::pi() * 2);
     /// ```
@@ -99,7 +99,7 @@ impl Angle {
     /// returned.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::zero().units(), Some(0));
     /// assert_eq!(Angle::two_pi().units(), None);
@@ -111,7 +111,7 @@ impl Angle {
     /// Is this angle clockwise or counter-clockwise?
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::pi().clockwise(), false);
     /// assert_eq!((-Angle::pi()).clockwise(), true);
@@ -160,7 +160,7 @@ impl Angle {
     /// Returns the cosine of the angle.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::zero().cos::<f64>(), 1.0f64);
     /// assert_eq!(Angle::pi_2().cos::<f64>(), 0.0f64);
@@ -203,7 +203,7 @@ impl Angle {
     /// Returns the cosine of the angle.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::zero().sin::<f64>(), 0.0f64);
     /// assert_eq!(Angle::pi_2().sin::<f64>(), 1.0f64);
@@ -218,7 +218,7 @@ impl Angle {
     /// Returns the tangent of the angle.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::pi_over(4).tan::<f64>(), 1.0f64);
     /// ```
@@ -230,7 +230,7 @@ impl Angle {
     /// Compute the arccos of the number.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::acos(0.0f64), Angle::pi_over(2));
     /// ```
@@ -258,7 +258,7 @@ impl Angle {
     /// Compute the arcsin of the number.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::asin(0.5f64).sin::<f64>(), 0.5f64);
     /// ```
@@ -289,7 +289,7 @@ impl Angle {
     /// Compute the arctan of the number.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     /// 
     /// assert_eq!(Angle::atan(1.0f64), Angle::pi_over(4));
     /// ```
@@ -320,7 +320,7 @@ impl Angle {
     /// Compute the atan(y / x) but keeping the sign of y and x.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     ///
     /// assert_eq!(Angle::atan2(1.0f64, 0.0).unwrap(), Angle::pi_2());
     /// ```
@@ -351,7 +351,7 @@ impl Angle {
     /// Convert the angle into radians.  This can lose precision pretty easily
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     /// use nalgebra::RealField;
     ///
     /// assert_eq!(Angle::pi().into::<f64>(), f64::pi());
@@ -379,7 +379,7 @@ impl<T: RealField> From<T> for Angle {
     /// Convert from radians into an angle.
     ///
     /// ```
-    /// use angles::Angle;
+    /// use integer_angles::Angle;
     /// use nalgebra::RealField;
     ///
     /// assert_eq!(Angle::from(f64::pi()), Angle::pi());

@@ -1,7 +1,7 @@
 //! # Angles Done With Integers
 //!
 //! ```
-//! use angles::Angle;
+//! use integer_angles::Angle;
 //!
 //! assert_eq!(Angle::pi_2().cos::<f64>(), 0.0f64);
 //! ```
