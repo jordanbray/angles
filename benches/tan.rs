@@ -4,7 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 
 fn bench_tan_angle(c: &mut Criterion) {
-    c.bench_function("tan_angle", |b| b.iter(|| black_box(Angle::pi()).tan()));
+    c.bench_function("tan_angle", |b| b.iter(|| black_box(Angle::pi()).tan::<f64>()));
 }
 
 fn bench_tan_builtin(c: &mut Criterion) {

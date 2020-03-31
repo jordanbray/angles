@@ -4,7 +4,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 
 fn bench_sin_angle(c: &mut Criterion) {
-    c.bench_function("sin_angle", |b| b.iter(|| black_box(Angle::pi()).sin()));
+    c.bench_function("sin_angle", |b| b.iter(|| black_box(Angle::pi()).sin::<f64>()));
 }
 
 fn bench_sin_builtin(c: &mut Criterion) {

@@ -1,7 +1,12 @@
 use nalgebra::{RealField, try_convert, convert};
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign, Neg};
 use serde_derive::{Serialize, Deserialize};
 
+/// Implements an angle structure where angles are stored as integers.
+///
+/// Also keeps track of if the angle is going clockwise or counter-clockwise.  It also stores
+/// a full circle different from a 0 degree arc.  This gets rid of precision issues when
+/// storing angles as `pi` can be represented exactly if you change the units.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default, Serialize, Deserialize)]
 pub struct Angle {
     clockwise: bool,
@@ -9,10 +14,51 @@ pub struct Angle {
 }
 
 impl Angle {
+    /// Is this angle zero?
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert!(Angle::zero().is_zero());
+    /// assert!(!Angle::pi().is_zero());
+    /// ```
     pub fn is_zero(&self) -> bool {
         self.units == Some(0)
     }
 
+    /// Divide pi by some number, and return the result
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::pi_over(2) * 2, Angle::pi());
+    /// ```
+    pub fn pi_over(n: i64) -> Angle {
+        Angle::pi() / n
+    }
+
+    /// Create a 0-degree angle
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::zero() * 2, Angle::zero());
+    /// ```
+    pub fn zero() -> Angle {
+        Angle {
+            clockwise: false,
+            units: Some(0)
+        }
+    }
+
+    /// Create an angle of pi over two counter-clockwise (for convenience).
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::pi_2(), Angle::pi_over(2));
+    /// assert_eq!(Angle::pi_2() * 2, Angle::pi());
+    /// ```
     pub fn pi_2() -> Angle {
         Angle {
             clockwise: false,
@@ -20,6 +66,13 @@ impl Angle {
         }
     }
 
+    /// Create an angle of pi counter-clockwise.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::pi() / 2, Angle::pi_2());
+    /// ```
     pub fn pi() -> Angle {
         Angle {
             clockwise: false,
@@ -27,6 +80,13 @@ impl Angle {
         }
     }
 
+    /// Create an angle that is `two_pi` radians counter-clockwise.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::two_pi() * 2, Angle::pi() * 2);
+    /// ```
     pub fn two_pi() -> Angle {
         Angle {
             clockwise: false,
@@ -34,10 +94,28 @@ impl Angle {
         }
     }
 
+    /// Get the number of units in this angle.  This will be some number between 0 and 2^64 - 1
+    /// where a full circle is 2^64 units.  If this represents a full cirle, `None` will be
+    /// returned.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::zero().units(), Some(0));
+    /// assert_eq!(Angle::two_pi().units(), None);
+    /// ```
     pub fn units(&self) -> Option<u64> {
         self.units
     }
 
+    /// Is this angle clockwise or counter-clockwise?
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::pi().clockwise(), false);
+    /// assert_eq!((-Angle::pi()).clockwise(), true);
+    /// ```
     pub fn clockwise(&self) -> bool {
         self.clockwise
     }
@@ -45,7 +123,7 @@ impl Angle {
     /// Returns the cosine of (x * 1<<63) / pi with a very high precision
     ///
     /// This only works over the range [-pi/2 to pi/2]
-    fn cos_partial(x: i64) -> f64 {
+    fn cos_partial<T: RealField>(x: i64) -> T {
         assert!(x >= -(1<<62) && x <= (1<<62));
 
         let pi = 1i128 << 63;
@@ -76,34 +154,45 @@ impl Angle {
         }
 
         // Keep in mind 1<<60 is representable exactly with a float
-        (sum as f64) / ((1i128<<60) as f64)
+        T::from_i64(sum as i64).unwrap() / T::from_i64(1i64<<60).unwrap()
     }
 
-    pub fn cosf64(&self) -> f64 {
+    /// Returns the cosine of the angle.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::zero().cos::<f64>(), 1.0f64);
+    /// assert_eq!(Angle::pi_2().cos::<f64>(), 0.0f64);
+    /// assert_eq!(Angle::pi().cos::<f64>(), -1.0f64);
+    /// assert_eq!((Angle::pi_2() * 3).cos::<f64>(), 0.0f64);
+    /// assert_eq!(Angle::two_pi().cos::<f64>(), 1.0f64);
+    /// ```
+    pub fn cos<T: RealField>(&self) -> T {
         match (self.clockwise, self.units) {
-            (_, None) => 1.0,
-            (_, Some(0)) => 1.0,
+            (_, None) => T::one(),
+            (_, Some(0)) => T::one(),
             (false, Some(x)) => {
                 let x = x as i64; // because of the symmetry, this always results in the same angle
 
                 if x < -(1<<62) {
                     // x is in the range [-pi to pi/2)
-                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                    -Angle::cos_partial::<T>(x.wrapping_add(i64::min_value()))
                 } else if x > (1<<62) {
-                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                    -Angle::cos_partial::<T>(x.wrapping_add(i64::min_value()))
                 } else {
                     Angle::cos_partial(x)
                 }
             },
             (true, Some(x)) => {
                 let x = x as i64; // because of the symmetry, this always results in the same angle
-                let x = -x;
+                let x = x.wrapping_neg();
 
                 if x < -(1<<62) {
                     // x is in the range [-pi to pi/2)
-                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                    -Angle::cos_partial::<T>(x.wrapping_add(i64::min_value()))
                 } else if x > (1<<62) {
-                    -Angle::cos_partial(x.wrapping_add(i64::min_value()))
+                    -Angle::cos_partial::<T>(x.wrapping_add(i64::min_value()))
                 } else {
                     Angle::cos_partial(x)
                 }
@@ -111,26 +200,48 @@ impl Angle {
         }
     }
 
-    pub fn cos<T: RealField>(self) -> T {
-        convert(self.cosf64())
-    }
-
-    pub fn sin(&self) -> f64 {
+    /// Returns the cosine of the angle.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::zero().sin::<f64>(), 0.0f64);
+    /// assert_eq!(Angle::pi_2().sin::<f64>(), 1.0f64);
+    /// assert_eq!(Angle::pi().sin::<f64>(), 0.0f64);
+    /// assert_eq!((3 * Angle::pi_2()).sin::<f64>(), -1.0f64);
+    /// assert_eq!(Angle::two_pi().sin::<f64>(), 0.0f64);
+    /// ```
+     pub fn sin<T: RealField>(&self) -> T {
         (*self - Angle::pi_2()).cos()
     }
 
-    pub fn tan(&self) -> f64 {
-        self.sin() / self.cos::<f64>()
+    /// Returns the tangent of the angle.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::pi_over(4).tan::<f64>(), 1.0f64);
+    /// ```
+    pub fn tan<T: RealField>(&self) -> T {
+        self.sin::<T>() / self.cos::<T>()
     }
 
-    pub fn acos(x: f64) -> Angle {
+
+    /// Compute the arccos of the number.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::acos(0.0f64), Angle::pi_over(2));
+    /// ```
+    pub fn acos<T: RealField>(x: T) -> Angle {
         let mut min = 0;
         let mut max = 1<<63;
 
         let mut error = max - min;
         while error > 1 {
             let middle = (max + min) / 2;
-            let cos: f64 = (Angle { units: Some(middle), clockwise: false }).cos();
+            let cos: T = (Angle { units: Some(middle), clockwise: false }).cos();
             if cos == x {
                 return Angle { units: Some(middle), clockwise: false };
             } else if cos < x {
@@ -144,13 +255,20 @@ impl Angle {
         Angle { units: Some((max + min) / 2), clockwise: false }
     }
 
-    pub fn asin(x: f64) -> Angle {
+    /// Compute the arcsin of the number.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::asin(0.5f64).sin::<f64>(), 0.5f64);
+    /// ```
+    pub fn asin<T: RealField>(x: T) -> Angle {
         let mut min: i64 = -(1<<62);
         let mut max: i64 = 1<<62;
 
         while min + 1 < max {
             let middle = (max + min) / 2;
-            let sin = (Angle { units: Some(middle as u64), clockwise: false }).sin();
+            let sin: T = (Angle { units: Some(middle as u64), clockwise: false }).sin();
             if sin == x {
                 break;
             } else if sin < x {
@@ -168,16 +286,23 @@ impl Angle {
         }
     }
 
-    pub fn atan(x: f64) -> Angle {
+    /// Compute the arctan of the number.
+    ///
+    /// ```
+    /// use angles::Angle;
+    /// 
+    /// assert_eq!(Angle::atan(1.0f64), Angle::pi_over(4));
+    /// ```
+    pub fn atan<T: RealField>(x: T) -> Angle {
         let mut min: i64 = -(1<<62);
         let mut max: i64 = 1<<62;
 
         while min + 1 < max {
             let middle = (max + min) / 2;
-            let sin = (Angle { units: Some(middle as u64), clockwise: false }).tan();
-            if sin == x {
+            let tan: T = (Angle { units: Some(middle as u64), clockwise: false }).tan();
+            if tan == x {
                 break;
-            } else if sin < x {
+            } else if tan < x {
                 min = middle;
             } else {
                 max = middle;
@@ -192,13 +317,20 @@ impl Angle {
         }
     }
 
-    pub fn atan2(y: f64, x: f64) -> Option<Angle> {
-        if x == 0.0 && y == 0.0 {
+    /// Compute the atan(y / x) but keeping the sign of y and x.
+    ///
+    /// ```
+    /// use angles::Angle;
+    ///
+    /// assert_eq!(Angle::atan2(1.0f64, 0.0).unwrap(), Angle::pi_2());
+    /// ```
+    pub fn atan2<T: RealField>(y: T, x: T) -> Option<Angle> {
+        if x == T::zero() && y == T::zero() {
             None
         } else {
-            let r = if x == 0.0 {
+            let r = if x == T::zero() {
                 y.abs()
-            } else if y == 0.0 {
+            } else if y == T::zero() {
                 x.abs() 
             } else {
                 (x * x + y * y).sqrt()
@@ -206,9 +338,9 @@ impl Angle {
 
             if (r + x).abs() >= y.abs() { // x == 0, y != 0 or x and y both != 0
                 Some(Angle::atan(y / (r + x)) * 2)
-            } else if y.abs() > 0.0 { // x and y both != 0
+            } else if y.abs() > T::zero() { // x and y both != 0
                 Some(Angle::atan((r - x) / y) * 2)
-            } else if x < 0.0 { // x < 0 && y == 0
+            } else if x < T::zero() { // x < 0 && y == 0
                 Some(Angle::pi())
             } else { // x > 0 && y == 0
                 Some(Angle::pi() * -1)
@@ -216,6 +348,14 @@ impl Angle {
         }
     }
 
+    /// Convert the angle into radians.  This can lose precision pretty easily
+    ///
+    /// ```
+    /// use angles::Angle;
+    /// use nalgebra::RealField;
+    ///
+    /// assert_eq!(Angle::pi().into::<f64>(), f64::pi());
+    /// ```
     pub fn into<T: RealField>(self) -> T {
         match (self.units, self.clockwise) {
             (None, true) => -T::two_pi(),
@@ -236,11 +376,19 @@ impl Angle {
 }
 
 impl<T: RealField> From<T> for Angle {
+    /// Convert from radians into an angle.
+    ///
+    /// ```
+    /// use angles::Angle;
+    /// use nalgebra::RealField;
+    ///
+    /// assert_eq!(Angle::from(f64::pi()), Angle::pi());
+    /// ```
     fn from(real: T) -> Angle {
         // should this be try_from, given NaN and Infinity for floats?
         let mut real = real;
         if real < T::zero() {
-            real = -convert::<f64, T>(-f64::rem_euclid(try_convert(real).unwrap(), f64::two_pi()));
+            real = -convert::<f64, T>(f64::rem_euclid(-try_convert(real).unwrap(), f64::two_pi()));
         } else if real > T::zero() {
             real = convert::<f64, T>(f64::rem_euclid(try_convert(real).unwrap(), f64::two_pi()));
         }
@@ -267,7 +415,7 @@ impl<T: RealField> From<T> for Angle {
                 units: Some(i as u64),
             }
         } else if real < T::zero() {
-            let i = try_convert((-real * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi()).unwrap();
+            let i = try_convert(((-real) * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi()).unwrap();
             Angle {
                 clockwise: true,
                 units: Some(i as u64),
@@ -276,6 +424,11 @@ impl<T: RealField> From<T> for Angle {
             panic!("NaN or Infinity passed into From<T: RealField> to Angle");
         }
     }
+}
+
+#[test]
+fn negative_is_positive() {
+    assert_eq!(Angle::from(-2.0f64).units, Angle::from(2.0f64).units);
 }
 
 fn add_units(a: Option<u64>, b: Option<u64>) -> Option<u64> {
@@ -327,14 +480,60 @@ impl Mul<i64> for Angle {
         match self.units {
             None => Angle { units: None, clockwise: self.clockwise ^ flip_clockwise },
             Some(x) => {
-                let units = x * rhs;
-                if units == 0 { // for example, pi * 2
+                let units = x.wrapping_mul(rhs);
+                if units == 0 && x != 0 && rhs != 0 { // we wrapped to 0, so make this two pi, instead of 0 radians
                     Angle { units: None, clockwise: self.clockwise ^ flip_clockwise }
                 } else {
                     Angle { units: Some(units), clockwise: self.clockwise ^ flip_clockwise }
                 }
             }
         }
+    }
+}
+
+impl Mul<Angle> for i64 {
+    type Output = Angle;
+
+    fn mul(self, rhs: Angle) -> Angle {
+        rhs * self
+    }
+}
+
+impl MulAssign<i64> for Angle {
+    fn mul_assign(&mut self, rhs: i64) {
+        *self = *self * rhs;
+    }
+}
+
+impl Div<i64> for Angle {
+    type Output = Angle;
+
+    fn div(self, rhs: i64) -> Angle {
+        let invert_clockwise = rhs < 0;
+        let rhs = if rhs > 0 {
+            rhs as u64
+        } else if rhs == i64::min_value() {
+            1u64<<63
+        } else {
+            (-rhs) as u64
+        };
+
+        match self.units {
+            None => if rhs == 1 {
+                Angle { units: self.units, clockwise: self.clockwise ^ invert_clockwise }
+            } else {
+                Angle { units: Some(((1i128<<64)/(rhs as i128)) as u64), clockwise: self.clockwise ^ invert_clockwise }
+            },
+            Some(x) => {
+                Angle { units: Some(x / rhs), clockwise: self.clockwise ^ invert_clockwise }
+            }
+        }
+    }
+}
+
+impl DivAssign<i64> for Angle {
+    fn div_assign(&mut self, rhs: i64) {
+        *self = *self / rhs;
     }
 }
 
@@ -369,6 +568,12 @@ impl Add for Angle {
     }
 }
 
+impl AddAssign<Angle> for Angle {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other;
+    }
+}
+
 impl Sub for Angle {
     type Output = Self;
 
@@ -379,5 +584,22 @@ impl Sub for Angle {
         };
 
         self + to_add
+    }
+}
+
+impl SubAssign<Angle> for Angle {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other;
+    }
+}
+
+impl Neg for Angle {
+    type Output = Angle;
+
+    fn neg(self) -> Self::Output {
+        Angle {
+            units: self.units,
+            clockwise: !self.clockwise,
+        }
     }
 }

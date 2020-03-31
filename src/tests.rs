@@ -5,19 +5,19 @@ use rand::Rng;
 
 #[quickcheck]
 fn test_sin(angle: f64) {
-    let sin = Angle::from(angle).sin();
+    let sin: f64 = Angle::from(angle).sin();
     assert!((angle.sin() - sin).abs() < 0.00000000000001);
 }
 
 #[quickcheck]
 fn test_cos(angle: f64) {
-    let cos = Angle::from(angle).cos::<f64>();
+    let cos: f64 = Angle::from(angle).cos::<f64>();
     assert!((angle.cos() - cos).abs() < 0.00000000000001);
 }
 
 #[quickcheck]
 fn test_tan(angle: f64) {
-    let tan = Angle::from(angle).tan();
+    let tan: f64 = Angle::from(angle).tan();
     let pass = (angle.tan() - tan).abs() < 0.000001;
 
     if !pass {
@@ -100,9 +100,9 @@ fn test_atan2(x: SmallFloat, y: SmallFloat) {
 #[quickcheck]
 fn test_angle(angle: f64) {
     let angle = if angle < 0.0 {
-        angle.rem_euclid(f64::two_pi())
+        -(-angle).rem_euclid(f64::two_pi())
     } else if angle > 0.0 {
-        -(-angle.rem_euclid(f64::two_pi()))
+        angle.rem_euclid(f64::two_pi())
     } else {
         angle
     };
@@ -116,16 +116,21 @@ fn test_angle(angle: f64) {
     }
 }
 
+fn range_reduce(f: f64) -> f64 {
+    if f < 0.0 {
+        -(-f).rem_euclid(f64::two_pi())
+    } else if f > 0.0 {
+        f.rem_euclid(f64::two_pi())
+    } else {
+        f
+    }
+}
+
 #[quickcheck]
 fn test_add(angle1: f64, angle2: f64) {
-    let angle = angle1 + angle2;
-    let angle = if angle < 0.0 {
-        angle.rem_euclid(f64::two_pi())
-    } else if angle > 0.0 {
-        -(-angle.rem_euclid(f64::two_pi()))
-    } else {
-        angle
-    };
+    let angle1 = range_reduce(angle1);
+    let angle2 = range_reduce(angle2);
+    let angle = range_reduce(angle1 + angle2);
 
     let a1 = Angle::from(angle1);
     let a2 = Angle::from(angle2);
