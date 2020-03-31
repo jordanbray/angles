@@ -1,8 +1,11 @@
 [package]
-name = "angles"
+name = "integer_angles"
 version = "0.1.0"
-authors = ["Jordan Bray <jordan@northwoodmachine.com>"]
+authors = ["Jordan Bray <jordanbray@gmail.com>"]
 edition = "2018"
+documentation = "https://docs.rs/angles/"
+repository = "https://github.com/jordanbray/angles/"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
