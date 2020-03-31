@@ -8,8 +8,33 @@ edition = "2018"
 
 [dependencies]
 nalgebra = { version = "0.20.0" }
-num = "0.2.1"
-num-traits = "0.2.1"
-num-integer = "0.1.42"
+
+[dev-dependencies]
+criterion = "0.3"
 quickcheck = "0.9.1"
 quickcheck_macros = "0.9.1"
+rand = "0.7.3"
+
+[[bench]]
+name = "asin"
+harness = false
+
+[[bench]]
+name = "acos"
+harness = false
+
+[[bench]]
+name = "atan"
+harness = false
+
+[[bench]]
+name = "sin"
+harness = false
+
+[[bench]]
+name = "cos"
+harness = false
+
+[[bench]]
+name = "tan"
+harness = false

@@ -1,8 +1,5 @@
-use crate::helpers::{bi, to_f64};
 use nalgebra::RealField;
-use num::BigRational;
-use num_traits::identities::Zero;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul};
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default)]
 pub struct Angle {
@@ -40,20 +37,13 @@ impl Angle {
         self.clockwise
     }
 
-    pub fn pi_bigint() -> BigRational {
-        bi(245850922) / bi(78256779)
-    }
-
     /// Returns the cosine of (x * 1<<63) / pi with a very high precision
     ///
     /// This only works over the range [-pi/2 to pi/2]
     fn cos_partial(x: i64) -> f64 {
-        assert!(x > -(1<<62) && x < (1<<62));
+        assert!(x >= -(1<<62) && x <= (1<<62));
 
         let pi = 1i128 << 63;
-
-        let s1 = 8;
-        let s2 = s1 - 4;
 
         // 58 bits per thing
         let a = 1152921504606846976;
@@ -120,8 +110,101 @@ impl Angle {
         (*self - Angle::pi_2()).cos()
     }
 
-    pub fn atan(slope: f64) -> Angle {
-        slope.atan().into()
+    pub fn tan(&self) -> f64 {
+        self.sin() / self.cos()
+    }
+
+    pub fn acos(x: f64) -> Angle {
+        let mut min = 0;
+        let mut max = 1<<63;
+
+        let mut error = max - min;
+        while error > 1 {
+            let middle = (max + min) / 2;
+            let cos = (Angle { units: Some(middle), clockwise: false }).cos();
+            if cos == x {
+                return Angle { units: Some(middle), clockwise: false };
+            } else if cos < x {
+                max = middle;
+            } else {
+                min = middle;
+            }
+            error = max - min;
+        }
+
+        Angle { units: Some((max + min) / 2), clockwise: false }
+    }
+
+    pub fn asin(x: f64) -> Angle {
+        let mut min: i64 = -(1<<62);
+        let mut max: i64 = 1<<62;
+
+        while min + 1 < max {
+            let middle = (max + min) / 2;
+            let sin = (Angle { units: Some(middle as u64), clockwise: false }).sin();
+            if sin == x {
+                break;
+            } else if sin < x {
+                min = middle;
+            } else {
+                max = middle;
+            }
+        }
+
+        let x = ((max + min) / 2) as u64;
+        if x > (1<<63) {
+            Angle { units: Some(u64::max_value() - x + 1), clockwise: true }
+        } else {
+            Angle { units: Some(x), clockwise: false }
+        }
+    }
+
+    pub fn atan(x: f64) -> Angle {
+        let mut min: i64 = -(1<<62);
+        let mut max: i64 = 1<<62;
+
+        while min + 1 < max {
+            let middle = (max + min) / 2;
+            let sin = (Angle { units: Some(middle as u64), clockwise: false }).tan();
+            if sin == x {
+                break;
+            } else if sin < x {
+                min = middle;
+            } else {
+                max = middle;
+            }
+        }
+
+        let x = ((max + min) / 2) as u64;
+        if x > (1<<63) {
+            Angle { units: Some(u64::max_value() - x + 1), clockwise: true }
+        } else {
+            Angle { units: Some(x), clockwise: false }
+        }
+    }
+
+    pub fn atan2(y: f64, x: f64) -> Option<Angle> {
+        if x == 0.0 && y == 0.0 {
+            None
+        } else {
+            let r = if x == 0.0 {
+                y.abs()
+            } else if y == 0.0 {
+                x.abs() 
+            } else {
+                (x * x + y * y).sqrt()
+            };
+
+            if (r + x).abs() >= y.abs() { // x == 0, y != 0 or x and y both != 0
+                Some(Angle::atan(y / (r + x)) * 2)
+            } else if y.abs() > 0.0 { // x and y both != 0
+                Some(Angle::atan((r - x) / y) * 2)
+            } else if x < 0.0 { // x < 0 && y == 0
+                Some(Angle::pi())
+            } else { // x > 0 && y == 0
+                Some(Angle::pi() * -1)
+            }
+        }
     }
 }
 
@@ -129,13 +212,13 @@ impl From<f64> for Angle {
     fn from(real: f64) -> Angle {
         // should this be try_from, given NaN and Infinity for floats?
         let mut real = real;
-        if real < f64::zero() {
+        if real < 0.0 {
             real = real.rem_euclid(f64::two_pi());
-        } else if real > f64::zero() {
+        } else if real > 0.0 {
             real = -(-real.rem_euclid(f64::two_pi()));
         }
 
-        if real == f64::zero() {
+        if real == 0.0 {
             Angle {
                 clockwise: false,
                 units: Some(0),
@@ -150,13 +233,13 @@ impl From<f64> for Angle {
                 clockwise: true,
                 units: None,
             }
-        } else if real > f64::zero() {
+        } else if real > 0.0 {
             let i = (real * ((Angle::pi().units.unwrap() as f64) / f64::pi())) as u64;
             Angle {
                 clockwise: false,
                 units: Some(i),
             }
-        } else if real < f64::zero() {
+        } else if real < 0.0 {
             let i = ((-real) * ((Angle::pi().units.unwrap() as f64) / f64::pi())) as u64;
             Angle {
                 clockwise: true,
@@ -175,19 +258,14 @@ impl From<Angle> for f64 {
             (None, false) => f64::two_pi(),
             (Some(0), _) => 0.0,
             (Some(x), clockwise) => {
-                let pi = Angle::pi_bigint();
-                let mut ratio = bi(x as i64) * -(pi.clone()) / bi(i64::min_value());
-                if x > (1u64 << 63) {
-                    // but, when converting we ended up with a negative value when we shouldn't have
-                    ratio += bi(2) * pi;
-                }
+                let x = (x as f64) / ((1u64<<63) as f64);
+                let x = x * f64::pi();
 
-                if clockwise {
-                    ratio *= bi(-1);
+                if !clockwise {
+                    x
+                } else {
+                    -x
                 }
-
-                // ratio is now the value for real
-                to_f64(ratio).unwrap()
             }
         }
     }
@@ -220,6 +298,34 @@ fn sub_units(a: Option<u64>, b: Option<u64>) -> (Option<u64>, bool) {
                 (Some(x.wrapping_sub(y)), false)
             } else {
                 (Some(y.wrapping_sub(x)), true)
+            }
+        }
+    }
+}
+
+impl Mul<i64> for Angle {
+    type Output = Angle;
+
+    fn mul(self, rhs: i64) -> Self {
+        let flip_clockwise = rhs < 0;
+
+        let rhs: u64 = if rhs > 0 {
+            rhs as u64
+        } else if rhs == i64::min_value() {
+            1<<63
+        } else {
+            rhs.abs() as u64
+        };
+
+        match self.units {
+            None => Angle { units: None, clockwise: self.clockwise ^ flip_clockwise },
+            Some(x) => {
+                let units = x * rhs;
+                if units == 0 { // for example, pi * 2
+                    Angle { units: None, clockwise: self.clockwise ^ flip_clockwise }
+                } else {
+                    Angle { units: Some(units), clockwise: self.clockwise ^ flip_clockwise }
+                }
             }
         }
     }
