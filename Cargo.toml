@@ -3,7 +3,7 @@ name = "integer_angles"
 version = "0.1.0"
 authors = ["Jordan Bray <jordanbray@gmail.com>"]
 edition = "2018"
-documentation = "https://docs.rs/angles/"
+documentation = "https://docs.rs/integer_angles/"
 repository = "https://github.com/jordanbray/angles/"
 license = "MIT"
 

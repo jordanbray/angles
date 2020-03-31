@@ -1,9 +1,9 @@
-# angles
-
 ## Angles Done With Integers
 
+Docs: https://docs.rs/integer_angles/
+
 ```rust
-use angles::Angle;
+use integer_angles::Angle;
 
 assert_eq!(Angle::pi_2().cos::<f64>(), 0.0f64);
 ```
@@ -41,3 +41,5 @@ Caveats:
 * This library is slower than using an f64 (about 10 times slower to compute `cos`.  You've
   gotta wait a whole 80 ns to get the result!).
 * ... Probably other things.
+
+License: MIT
