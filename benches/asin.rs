@@ -1,6 +1,5 @@
-use integer_angles::Angle;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
+use integer_angles::Angle;
 
 fn bench_asin_angle(c: &mut Criterion) {
     c.bench_function("asin_angle", |b| b.iter(|| Angle::asin(black_box(1.1))));

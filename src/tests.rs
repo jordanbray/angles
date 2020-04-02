@@ -21,8 +21,8 @@ fn test_tan(angle: f64) {
     let pass = (angle.tan() - tan).abs() < 0.000001;
 
     if !pass {
-        if (angle.tan() > 1000.0  && tan > 1000.0) ||
-           (angle.tan() < -1000.0 && tan < -1000.0) { // honestly, don't do tangent of these kinds of angles...
+        if (angle.tan() > 1000.0 && tan > 1000.0) || (angle.tan() < -1000.0 && tan < -1000.0) {
+            // honestly, don't do tangent of these kinds of angles...
             return;
         }
 
@@ -35,12 +35,14 @@ fn test_tan(angle: f64) {
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Default)]
 struct SmallFloat {
-    x: f64
+    x: f64,
 }
 
 impl Arbitrary for SmallFloat {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        SmallFloat { x: g.gen_range(-1.0, 1.0) }
+        SmallFloat {
+            x: g.gen_range(-1.0, 1.0),
+        }
     }
 }
 
@@ -53,7 +55,6 @@ fn test_acos(x: SmallFloat) {
     if (angle - other).abs() >= 0.0000000000001 {
         println!("Angle: {}\nMine  : {}\nTheirs: {}\n", x, angle, other);
         assert!(false);
-
     }
 }
 
@@ -95,7 +96,6 @@ fn test_atan2(x: SmallFloat, y: SmallFloat) {
         assert!(false);
     }
 }
-
 
 #[quickcheck]
 fn test_angle(angle: f64) {
@@ -147,4 +147,3 @@ fn test_add(angle1: f64, angle2: f64) {
         assert!(pass);
     }
 }
-
