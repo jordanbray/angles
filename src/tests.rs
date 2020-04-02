@@ -47,7 +47,7 @@ impl Arbitrary for SmallFloat {
 #[quickcheck]
 fn test_acos(x: SmallFloat) {
     let x = x.x;
-    let angle: f64 = Angle::acos(x).into();
+    let angle: f64 = Angle::acos(x).radians();
     let other = x.acos();
 
     if (angle - other).abs() >= 0.0000000000001 {
@@ -60,7 +60,7 @@ fn test_acos(x: SmallFloat) {
 #[quickcheck]
 fn test_asin(x: SmallFloat) {
     let x = x.x;
-    let angle: f64 = Angle::asin(x).into();
+    let angle: f64 = Angle::asin(x).radians();
     let other = x.asin();
 
     if (angle - other).abs() >= 0.0000000000001 {
@@ -71,7 +71,7 @@ fn test_asin(x: SmallFloat) {
 
 #[quickcheck]
 fn test_atan(x: f64) {
-    let angle: f64 = Angle::atan(x).into();
+    let angle: f64 = Angle::atan(x).radians();
     let other = x.atan();
 
     if (angle - other).abs() >= 0.0000000000001 {
@@ -88,7 +88,7 @@ fn test_atan2(x: SmallFloat, y: SmallFloat) {
         return;
     }
 
-    let angle: f64 = Angle::atan2(y, x).unwrap().into();
+    let angle: f64 = Angle::atan2(y, x).unwrap().radians();
     let other = f64::atan2(y, x);
     if (angle - other).abs() >= 0.000000000000001 {
         println!("x: {}, y: {}\nMine  : {}\nTheirs: {}\n", x, y, angle, other);
@@ -107,10 +107,10 @@ fn test_angle(angle: f64) {
         angle
     };
     let s = Angle::from(angle);
-    let pass = (s.into::<f64>() - angle).abs() < 0.00000000000001;
+    let pass = (s.radians::<f64>() - angle).abs() < 0.00000000000001;
     if !pass {
         println!("start:  {:?}", angle);
-        println!("end   : {:?}", s.into::<f64>());
+        println!("end   : {:?}", s.radians::<f64>());
         println!("middle: {:?}", s);
         assert!(pass);
     }
@@ -137,7 +137,7 @@ fn test_add(angle1: f64, angle2: f64) {
 
     let result = a1 + a2;
 
-    let result_f64 = result.into::<f64>();
+    let result_f64 = result.radians::<f64>();
     let pass = (result_f64 - angle).abs() < 0.0000000000001;
     if !pass {
         println!("angle1 : {:?}", angle1);

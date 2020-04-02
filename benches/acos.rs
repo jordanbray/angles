@@ -1,4 +1,4 @@
-use angles::Angle;
+use integer_angles::Angle;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 
