@@ -14,12 +14,12 @@ license = "MIT"
 nalgebra = { version = "0.20.0" }
 serde_derive = "1"
 serde = "1"
+quickcheck = "0.9.1"
+rand = "0.7.3"
 
 [dev-dependencies]
 criterion = "0.3"
-quickcheck = "0.9.1"
 quickcheck_macros = "0.9.1"
-rand = "0.7.3"
 
 [[bench]]
 name = "asin"

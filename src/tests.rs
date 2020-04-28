@@ -4,31 +4,31 @@ use quickcheck::{Arbitrary, Gen};
 use rand::Rng;
 
 #[quickcheck]
-fn test_sin(angle: f64) {
-    let sin: f64 = Angle::from(angle).sin();
-    assert!((angle.sin() - sin).abs() < 0.00000000000001);
+fn test_sin(angle: Angle) {
+    let sin: f64 = angle.sin();
+    assert!((angle.radians::<f64>().sin() - sin).abs() < 0.00000000000001);
 }
 
 #[quickcheck]
-fn test_cos(angle: f64) {
-    let cos: f64 = Angle::from(angle).cos::<f64>();
-    assert!((angle.cos() - cos).abs() < 0.00000000000001);
+fn test_cos(angle: Angle) {
+    let cos: f64 = angle.cos::<f64>();
+    assert!((angle.radians::<f64>().cos() - cos).abs() < 0.00000000000001);
 }
 
 #[quickcheck]
-fn test_tan(angle: f64) {
-    let tan: f64 = Angle::from(angle).tan();
-    let pass = (angle.tan() - tan).abs() < 0.000001;
+fn test_tan(angle: Angle) {
+    let tan: f64 = angle.tan();
+    let pass = (angle.radians::<f64>().tan() - tan).abs() < 0.000001;
 
     if !pass {
-        if (angle.tan() > 1000.0 && tan > 1000.0) || (angle.tan() < -1000.0 && tan < -1000.0) {
+        if (angle.radians::<f64>().tan() > 1000.0 && tan > 1000.0) || (angle.radians::<f64>().tan() < -1000.0 && tan < -1000.0) {
             // honestly, don't do tangent of these kinds of angles...
             return;
         }
 
         println!("angle : {:?}", angle);
         println!("mine  : {:?}", tan);
-        println!("theirs: {:?}", angle.tan());
+        println!("theirs: {:?}", angle.radians::<f64>().tan());
         assert!(pass);
     }
 }
@@ -127,13 +127,12 @@ fn range_reduce(f: f64) -> f64 {
 }
 
 #[quickcheck]
-fn test_add(angle1: f64, angle2: f64) {
-    let angle1 = range_reduce(angle1);
-    let angle2 = range_reduce(angle2);
-    let angle = range_reduce(angle1 + angle2);
-
-    let a1 = Angle::from(angle1);
-    let a2 = Angle::from(angle2);
+fn test_add(a1: Angle, a2: Angle) {
+    let angle1: f64 = a1.radians();
+    let angle2: f64 = a2.radians();
+    let angle = if a1 == Angle::two_pi() && a2 == Angle::two_pi() { f64::two_pi() }
+                 else if a1 == -Angle::two_pi() && a2 == -Angle::two_pi() { -f64::two_pi() }
+                 else { range_reduce(angle1 + angle2) };
 
     let result = a1 + a2;
 
@@ -145,5 +144,29 @@ fn test_add(angle1: f64, angle2: f64) {
         println!("correct: {:?}", angle);
         println!("mine   : {:?}", result_f64);
         assert!(pass);
+    }
+}
+
+#[quickcheck]
+fn test_simple_ordering(a1: Angle, a2: Angle) {
+    let angle1: f64 = a1.radians();
+    let angle2: f64 = a2.radians();
+
+    assert_eq!(angle1 == angle2, a1 == a2);
+    assert_eq!(angle1 < angle2, a1 < a2);
+    assert_eq!(angle1 > angle2, a1 > a2);
+}
+
+#[quickcheck]
+fn test_ord(a1: Angle, a2: Angle, a3: Angle) {
+    if a1 < a2 && a2 < a3 {
+        assert!(a1 < a3);
+    }
+    if a1 == a2 && a2 == a3 {
+        assert!(a1 == a3);
+    }
+
+    if a1 > a2 && a2 > a3 {
+        assert!(a1 > a3);
     }
 }
