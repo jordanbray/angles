@@ -22,7 +22,7 @@ impl Arbitrary for Angle {
         let units = g.gen();
         Angle {
             clockwise: clockwise,
-            units: if g.gen() { None } else { Some(units) }
+            units: if g.gen() { None } else { Some(units) },
         }
     }
 }
@@ -437,7 +437,7 @@ impl Angle {
     pub fn atan2<T: RealField>(y: T, x: T) -> Option<Angle> {
         if x == T::zero() && y == T::zero() {
             None // I strongly disagree with IEEE on the correct result here.
-                // This is clearly the correct result.
+                 // This is clearly the correct result.
         } else {
             let r = if x == T::zero() {
                 y.abs()
@@ -545,7 +545,7 @@ impl<T: RealField> From<T> for Angle {
         } else if real > T::zero() {
             let i =
                 try_convert((real * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi())
-                .unwrap();
+                    .unwrap();
             Angle {
                 clockwise: false,
                 units: Some(i as u64),
@@ -553,7 +553,7 @@ impl<T: RealField> From<T> for Angle {
         } else if real < T::zero() {
             let i =
                 try_convert(((-real) * T::from_u64(Angle::pi().units.unwrap()).unwrap()) / T::pi())
-                .unwrap();
+                    .unwrap();
             Angle {
                 clockwise: true,
                 units: Some(i as u64),
@@ -667,20 +667,42 @@ fn add(units1: Option<u64>, units2: Option<u64>) -> Option<u64> {
         (None, None) => None,
         (None, Some(x)) => Some(x),
         (Some(x), None) => Some(x),
-        (Some(x), Some(y)) => if x == 0 && y == 0 { Some(0) }
-                              else if x.wrapping_add(y) == 0 { None }
-                              else { Some(x.wrapping_add(y)) },
+        (Some(x), Some(y)) => {
+            if x == 0 && y == 0 {
+                Some(0)
+            } else if x.wrapping_add(y) == 0 {
+                None
+            } else {
+                Some(x.wrapping_add(y))
+            }
+        }
     }
 }
 
 fn sub(units1: Option<u64>, units2: Option<u64>) -> Option<u64> {
     match (units1, units2) {
         (None, None) => Some(0),
-        (None, Some(x)) => if x == 0 { None }
-                           else { Some(u64::max_value().wrapping_sub(x - 1)) },
-        (Some(x), None) => if x == 0 { None }
-                           else { Some(u64::max_value().wrapping_sub(x - 1)) },
-        (Some(x), Some(y)) => if x > y { Some(x - y) } else { Some(y - x) },
+        (None, Some(x)) => {
+            if x == 0 {
+                None
+            } else {
+                Some(u64::max_value().wrapping_sub(x - 1))
+            }
+        }
+        (Some(x), None) => {
+            if x == 0 {
+                None
+            } else {
+                Some(u64::max_value().wrapping_sub(x - 1))
+            }
+        }
+        (Some(x), Some(y)) => {
+            if x > y {
+                Some(x - y)
+            } else {
+                Some(y - x)
+            }
+        }
     }
 }
 
@@ -691,9 +713,10 @@ impl Add for Angle {
         if self.clockwise == other.clockwise {
             Angle {
                 units: add(self.units, other.units),
-                clockwise: self.clockwise
+                clockwise: self.clockwise,
             }
-        } else { // either x - y or -x + y == y - x == -(x - y).  So, the result (x - y) is useful
+        } else {
+            // either x - y or -x + y == y - x == -(x - y).  So, the result (x - y) is useful
             let result = sub(self.units, other.units);
             let flip_sign = if self.units.is_none() {
                 false

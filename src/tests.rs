@@ -21,7 +21,9 @@ fn test_tan(angle: Angle) {
     let pass = (angle.radians::<f64>().tan() - tan).abs() < 0.000001;
 
     if !pass {
-        if (angle.radians::<f64>().tan() > 1000.0 && tan > 1000.0) || (angle.radians::<f64>().tan() < -1000.0 && tan < -1000.0) {
+        if (angle.radians::<f64>().tan() > 1000.0 && tan > 1000.0)
+            || (angle.radians::<f64>().tan() < -1000.0 && tan < -1000.0)
+        {
             // honestly, don't do tangent of these kinds of angles...
             return;
         }
@@ -130,9 +132,13 @@ fn range_reduce(f: f64) -> f64 {
 fn test_add(a1: Angle, a2: Angle) {
     let angle1: f64 = a1.radians();
     let angle2: f64 = a2.radians();
-    let angle = if a1 == Angle::two_pi() && a2 == Angle::two_pi() { f64::two_pi() }
-                 else if a1 == -Angle::two_pi() && a2 == -Angle::two_pi() { -f64::two_pi() }
-                 else { range_reduce(angle1 + angle2) };
+    let angle = if a1 == Angle::two_pi() && a2 == Angle::two_pi() {
+        f64::two_pi()
+    } else if a1 == -Angle::two_pi() && a2 == -Angle::two_pi() {
+        -f64::two_pi()
+    } else {
+        range_reduce(angle1 + angle2)
+    };
 
     let result = a1 + a2;
 
