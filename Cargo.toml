@@ -1,6 +1,6 @@
 [package]
 name = "integer_angles"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jordan Bray <jordanbray@gmail.com>"]
 edition = "2018"
 documentation = "https://docs.rs/integer_angles/"
